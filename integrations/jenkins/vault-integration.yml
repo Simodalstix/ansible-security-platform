@@ -1,0 +1,37 @@
+---
+- name: Integrate Jenkins with Vault
+  hosts: jenkins-server
+  become: yes
+  
+  tasks:
+    - name: Install Vault plugin for Jenkins
+      jenkins_plugin:
+        name: hashicorp-vault-plugin
+        state: present
+        
+    - name: Configure Vault authentication
+      jenkins_script:
+        script: |
+          import jenkins.model.*
+          import com.datapipe.jenkins.vault.configuration.*
+          
+          def instance = Jenkins.getInstance()
+          def vaultConfig = new VaultConfiguration()
+          vaultConfig.setVaultUrl("https://{{ vault_cluster_addr }}")
+          vaultConfig.setVaultCredentialId("vault-approle")
+          
+          instance.getDescriptor("com.datapipe.jenkins.vault.configuration.VaultConfiguration").setConfiguration(vaultConfig)
+          instance.save()
+
+    - name: Create Vault AppRole for Jenkins
+      uri:
+        url: "https://{{ vault_cluster_addr }}/v1/auth/approle/role/jenkins"
+        method: POST
+        headers:
+          X-Vault-Token: "{{ vault_token }}"
+        body_format: json
+        body:
+          policies: ["jenkins-policy"]
+          token_ttl: "1h"
+          token_max_ttl: "4h"
+      delegate_to: localhost

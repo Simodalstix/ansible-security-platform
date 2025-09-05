@@ -1,0 +1,37 @@
+---
+- name: Automated Threat Response
+  hosts: localhost
+  gather_facts: false
+  vars:
+    threat_level: "{{ threat_level | default('medium') }}"
+  
+  tasks:
+    - name: Block suspicious IP
+      uri:
+        url: "https://{{ wazuh_manager_ip }}:55000/security/user/authenticate"
+        method: POST
+        body_format: json
+        body:
+          user: "{{ wazuh_api_user }}"
+          password: "{{ wazuh_api_password }}"
+      register: wazuh_auth
+
+    - name: Add IP to blocklist
+      uri:
+        url: "https://{{ wazuh_manager_ip }}:55000/lists/files/blocked-ips"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ wazuh_auth.json.data.token }}"
+        body: "{{ suspicious_ip }}"
+      when: threat_level in ['high', 'critical']
+
+    - name: Rotate compromised credentials
+      uri:
+        url: "https://{{ vault_cluster_addr }}/v1/sys/leases/revoke-prefix/database/creds"
+        method: POST
+        headers:
+          X-Vault-Token: "{{ vault_token }}"
+        body_format: json
+        body:
+          lease_id: "{{ compromised_lease_id }}"
+      when: threat_level == 'critical'

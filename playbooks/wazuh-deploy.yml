@@ -1,0 +1,14 @@
+---
+- name: Deploy Wazuh SIEM Manager
+  hosts: wazuh_manager
+  become: yes
+  roles:
+    - wazuh-manager
+
+- name: Deploy Wazuh Agents
+  hosts: wazuh_agents
+  become: yes
+  roles:
+    - wazuh-agent
+  vars:
+    wazuh_manager_ip: "{{ hostvars[groups['wazuh_manager'][0]]['ansible_host'] }}"

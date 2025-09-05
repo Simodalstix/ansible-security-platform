@@ -1,0 +1,34 @@
+---
+- name: SOC2/PCI-DSS Compliance Audit
+  hosts: all
+  become: yes
+  gather_facts: yes
+  
+  tasks:
+    - name: Check password policy compliance
+      shell: |
+        grep -E "^PASS_MAX_DAYS|^PASS_MIN_DAYS|^PASS_WARN_AGE" /etc/login.defs
+      register: password_policy
+      
+    - name: Verify encryption at rest
+      stat:
+        path: /etc/crypttab
+      register: encryption_check
+      
+    - name: Check audit logging
+      systemd:
+        name: auditd
+        state: started
+      register: audit_status
+      
+    - name: Generate compliance report
+      template:
+        src: compliance-report.j2
+        dest: "/tmp/compliance-{{ inventory_hostname }}-{{ ansible_date_time.date }}.json"
+      vars:
+        compliance_data:
+          hostname: "{{ inventory_hostname }}"
+          password_policy_compliant: "{{ 'PASS_MAX_DAYS\t90' in password_policy.stdout }}"
+          encryption_enabled: "{{ encryption_check.stat.exists }}"
+          audit_logging: "{{ audit_status.status.ActiveState == 'active' }}"
+          timestamp: "{{ ansible_date_time.iso8601 }}"

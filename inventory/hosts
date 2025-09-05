@@ -1,0 +1,30 @@
+[vault_servers]
+vault-01 ansible_host=10.0.2.10 vault_node_role=bootstrap
+vault-02 ansible_host=10.0.2.11 vault_node_role=secondary
+vault-03 ansible_host=10.0.2.12 vault_node_role=secondary
+
+[wazuh_manager]
+wazuh-manager ansible_host=10.0.2.20
+
+[wazuh_agents]
+file-server ansible_host=10.0.1.10
+jenkins-server ansible_host=10.0.1.20
+elk-server ansible_host=10.0.1.30
+
+[pki_authority]
+ca-server ansible_host=10.0.2.30
+
+[security:children]
+vault_servers
+wazuh_manager
+pki_authority
+
+[protected_infrastructure:children]
+wazuh_agents
+
+[all:vars]
+ansible_user=ansible
+ansible_ssh_private_key_file=~/.ssh/security_platform_key
+vault_cluster_name=security-vault
+wazuh_cluster_name=security-siem
+security_domain=security.local

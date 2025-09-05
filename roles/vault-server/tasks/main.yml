@@ -1,0 +1,51 @@
+---
+- name: Install Vault
+  yum:
+    name: vault
+    state: present
+
+- name: Create vault user
+  user:
+    name: vault
+    system: yes
+    shell: /bin/false
+
+- name: Create vault directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: vault
+    group: vault
+    mode: '0755'
+  loop:
+    - /opt/vault/data
+    - /opt/vault/logs
+    - /etc/vault.d
+
+- name: Configure Vault
+  template:
+    src: vault.hcl.j2
+    dest: /etc/vault.d/vault.hcl
+    owner: vault
+    group: vault
+    mode: '0640'
+  notify: restart vault
+
+- name: Start and enable Vault
+  systemd:
+    name: vault
+    state: started
+    enabled: yes
+
+- name: Initialize Vault cluster
+  uri:
+    url: "https://{{ ansible_host }}:8200/v1/sys/init"
+    method: POST
+    body_format: json
+    body:
+      secret_shares: 5
+      secret_threshold: 3
+    validate_certs: no
+  register: vault_init
+  when: vault_node_role == 'bootstrap'
+  run_once: true

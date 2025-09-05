@@ -1,0 +1,37 @@
+---
+- name: Deploy HashiCorp Vault Cluster
+  hosts: vault_servers
+  become: yes
+  roles:
+    - vault-server
+  
+  post_tasks:
+    - name: Configure Vault policies
+      uri:
+        url: "https://{{ hostvars[groups['vault_servers'][0]]['ansible_host'] }}:8200/v1/sys/policies/acl/{{ item | basename | regex_replace('.hcl$', '') }}"
+        method: PUT
+        headers:
+          X-Vault-Token: "{{ vault_root_token }}"
+        body_format: json
+        body:
+          policy: "{{ lookup('file', item) }}"
+        validate_certs: no
+      with_fileglob:
+        - "../vault/policies/*.hcl"
+      delegate_to: localhost
+      run_once: true
+
+    - name: Enable PKI secrets engine
+      uri:
+        url: "https://{{ hostvars[groups['vault_servers'][0]]['ansible_host'] }}:8200/v1/sys/mounts/pki"
+        method: POST
+        headers:
+          X-Vault-Token: "{{ vault_root_token }}"
+        body_format: json
+        body:
+          type: pki
+          config:
+            max_lease_ttl: "8760h"
+        validate_certs: no
+      delegate_to: localhost
+      run_once: true

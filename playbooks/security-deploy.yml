@@ -1,0 +1,19 @@
+---
+- name: Deploy Zero-Trust Security Platform
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Deploy PKI Authority
+      import_playbook: pki-deploy.yml
+
+    - name: Deploy Vault Cluster
+      import_playbook: vault-deploy.yml
+
+    - name: Deploy Wazuh SIEM
+      import_playbook: wazuh-deploy.yml
+
+    - name: Apply Security Hardening
+      import_playbook: security-hardening.yml
+
+    - name: Configure Zero-Trust Network
+      import_playbook: zero-trust-network.yml

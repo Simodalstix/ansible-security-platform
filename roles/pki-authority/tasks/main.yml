@@ -1,0 +1,51 @@
+---
+- name: Install OpenSSL
+  yum:
+    name: openssl
+    state: present
+
+- name: Create CA directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - /opt/ca/private
+    - /opt/ca/certs
+    - /opt/ca/newcerts
+    - /opt/ca/crl
+
+- name: Generate CA private key
+  openssl_privatekey:
+    path: /opt/ca/private/ca.key
+    size: 4096
+    mode: '0600'
+
+- name: Generate CA certificate
+  openssl_certificate:
+    path: /opt/ca/certs/ca.crt
+    privatekey_path: /opt/ca/private/ca.key
+    provider: selfsigned
+    common_name: "{{ security_domain }} Root CA"
+    country_name: US
+    organization_name: Security Platform
+    basic_constraints:
+      - CA:TRUE
+    key_usage:
+      - keyCertSign
+      - cRLSign
+
+- name: Create certificate serial file
+  copy:
+    content: "1000"
+    dest: /opt/ca/serial
+
+- name: Create certificate index
+  file:
+    path: /opt/ca/index.txt
+    state: touch
+
+- name: Configure OpenSSL for CA
+  template:
+    src: openssl.cnf.j2
+    dest: /opt/ca/openssl.cnf

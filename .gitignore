@@ -1,0 +1,23 @@
+# Documentation files (consolidate into README)
+DUAL-LAPTOP-ARCHITECTURE.md
+NETWORK-SETUP.md
+OPTIMIZED-ARCHITECTURE.md
+RASPBERRY-PI-EDGE.md
+ROCKY-NATIVE-SETUP.md
+SKILL-LEVEL-ASSESSMENT.md
+STANDARDIZATION-PROMPT.md
+VMWARE-SETUP.md
+
+# Ansible runtime
+*.retry
+.vault_pass
+host_vars/
+group_vars/secrets.yml
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

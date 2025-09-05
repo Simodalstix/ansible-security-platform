@@ -1,30 +1,28 @@
-[vault_servers]
-vault-01 ansible_host=10.0.2.10 vault_node_role=bootstrap
-vault-02 ansible_host=10.0.2.11 vault_node_role=secondary
-vault-03 ansible_host=10.0.2.12 vault_node_role=secondary
+# Consolidated Security Platform Architecture
+[security_platform]
+security-platform ansible_host=192.168.198.130 # Vault + Wazuh + PKI (12GB)
 
-[wazuh_manager]
-wazuh-manager ansible_host=10.0.2.20
+[cicd_platform] 
+cicd-platform ansible_host=192.168.198.131 # Jenkins + Nexus + SonarQube (8GB)
 
-[wazuh_agents]
-file-server ansible_host=10.0.1.10
-jenkins-server ansible_host=10.0.1.20
-elk-server ansible_host=10.0.1.30
+[elk_platform]
+elk-platform ansible_host=192.168.198.132 # Elasticsearch + Kibana + Logstash (8GB)
 
-[pki_authority]
-ca-server ansible_host=10.0.2.30
+[file_servers]
+file-server ansible_host=192.168.198.133 # File services + backup (2GB)
 
-[security:children]
-vault_servers
-wazuh_manager
-pki_authority
+[app_servers]
+app-server ansible_host=192.168.198.134 # Apps + Nginx + agents (2GB)
 
 [protected_infrastructure:children]
-wazuh_agents
+cicd_platform
+elk_platform
+file_servers
+app_servers
 
 [all:vars]
-ansible_user=ansible
-ansible_ssh_private_key_file=~/.ssh/security_platform_key
-vault_cluster_name=security-vault
-wazuh_cluster_name=security-siem
-security_domain=security.local
+ansible_user=ubuntu
+ansible_become_method=sudo
+security_domain=lab.local
+vault_addr=https://192.168.198.130:8200
+wazuh_manager=192.168.198.130

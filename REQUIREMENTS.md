@@ -1,26 +1,48 @@
-# Infrastructure Requirements
+# Lab Infrastructure Requirements
 
-## Minimum Host Specifications
+## Main Laptop (32GB) - Security & Core
+```
+pfsense:             2GB  - DHCP/Firewall (existing)
+windows-server:      2GB  - Domain services (existing)
+security-platform:   6GB  - Vault + Wazuh + PKI (lab-optimized)
+elk-platform:        6GB  - Elasticsearch + Kibana + Logstash
+file-server:         2GB  - File services + backup
+app-server:          2GB  - Apps + Nginx + agents
+```
+**Total: 20GB used, 12GB free**
 
-### Security Layer (New Hosts)
-- **Vault Cluster (3 nodes)**: 4GB RAM, 40GB disk each
-- **Wazuh Manager**: 8GB RAM, 100GB disk  
-- **PKI Authority**: 2GB RAM, 20GB disk
+## Rocky Laptop (16GB) - Native CI/CD Host
+```
+Rocky Linux (bare metal):
+- Jenkins: 2GB reserved
+- Nexus: 1GB reserved  
+- SonarQube: 2GB reserved
+- Docker: On-demand builds
+- System: 2GB
+```
+**Total: 7GB reserved, 9GB available for builds**
 
-### Protected Infrastructure (Existing)
-- **File Server**: 2GB RAM, 50GB disk
-- **Jenkins Server**: 4GB RAM, 60GB disk
-- **ELK Server**: 8GB RAM, 200GB disk
+## Raspberry Pi (8GB) - Edge Computing
+```
+K3s + ArgoCD:        3GB
+MQTT + IoT Apps:     3GB  
+Monitoring:          1.5GB
+System:              0.5GB
+```
 
-## Operating System Support
-- **Ubuntu**: 20.04 LTS or 22.04 LTS
-- **RHEL**: 8.x or 9.x
+## Operating Systems
+- **Security/CI/CD**: RHEL 9 (enterprise support)
+- **ELK/File/App**: Ubuntu 22.04 LTS (performance)
+- **Pi**: Ubuntu 22.04 LTS ARM64
 
-## Network Requirements
-- Security VLAN: 10.0.2.0/24 (isolated)
-- Infrastructure VLAN: 10.0.1.0/24
-- Inter-VLAN routing for monitoring only
+## Network: 192.168.198.0/24
+- **Main Laptop VMs**: 192.168.198.130-134
+- **Rocky Laptop**: 192.168.198.11 (native)
+- **Raspberry Pi**: 192.168.198.200
+- **pfSense**: Handles DHCP for all devices
 
-## Total Resources
-- **New Infrastructure**: 22GB RAM, 260GB disk
-- **Enhanced Existing**: Uses current resources + monitoring agents
+## Benefits
+- **Cost Effective**: No VMware license needed on Rocky
+- **Performance**: Native CI/CD without virtualization overhead
+- **Scalable**: Edge computing with ARM64 architecture
+- **Enterprise**: Multi-platform orchestration (x86 + ARM64)

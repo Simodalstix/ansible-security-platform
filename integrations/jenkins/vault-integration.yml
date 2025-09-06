@@ -25,7 +25,7 @@
 
     - name: Create Vault AppRole for Jenkins
       uri:
-        url: "https://{{ vault_cluster_addr }}/v1/auth/approle/role/jenkins"
+        url: "https://192.168.198.133:8200/v1/auth/approle/role/jenkins"
         method: POST
         headers:
           X-Vault-Token: "{{ vault_token }}"
@@ -34,4 +34,6 @@
           policies: ["jenkins-policy"]
           token_ttl: "1h"
           token_max_ttl: "4h"
+        retries: 3
+        delay: 10
       delegate_to: localhost

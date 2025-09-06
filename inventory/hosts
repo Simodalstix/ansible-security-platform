@@ -1,28 +1,20 @@
-# Consolidated Security Platform Architecture
+# Security Platform Project - Standardized IPs
 [security_platform]
-security-platform ansible_host=192.168.198.130 # Vault + Wazuh + PKI (12GB)
+security-platform ansible_host=192.168.198.133 # Vault + Wazuh + PKI (6GB, RHEL 9)
 
-[cicd_platform] 
-cicd-platform ansible_host=192.168.198.131 # Jenkins + Nexus + SonarQube (8GB)
-
-[elk_platform]
-elk-platform ansible_host=192.168.198.132 # Elasticsearch + Kibana + Logstash (8GB)
-
-[file_servers]
-file-server ansible_host=192.168.198.133 # File services + backup (2GB)
-
-[app_servers]
-app-server ansible_host=192.168.198.134 # Apps + Nginx + agents (2GB)
-
-[protected_infrastructure:children]
-cicd_platform
-elk_platform
-file_servers
-app_servers
+[protected_infrastructure]
+# External infrastructure this project integrates with
+app-server ansible_host=192.168.198.131
+file-server ansible_host=192.168.198.132  
+elk-platform ansible_host=192.168.198.134
 
 [all:vars]
 ansible_user=ubuntu
 ansible_become_method=sudo
 security_domain=lab.local
-vault_addr=https://192.168.198.130:8200
-wazuh_manager=192.168.198.130
+vault_addr=https://192.168.198.133:8200
+wazuh_manager=192.168.198.133
+# External integration IPs
+elk_host=192.168.198.134
+file_server_host=192.168.198.132
+rocky_cicd_host=192.168.1.157
